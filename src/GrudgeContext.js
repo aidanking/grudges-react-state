@@ -1,32 +1,22 @@
 import React, { useReducer, createContext, useCallback } from 'react';
 import id from 'uuid/v4';
 import initialState from './initialState';
+import { reducer } from './grudgeReducer';
+import { GRUDGE_ADD, GRUDGE_FORGIVE, UNDO, REDO } from './actions';
 
 export const GrudgeContext = createContext();
 
-const GRUDGE_ADD = 'GRUDGE_ADD';
-const GRUDGE_FORGIVE = 'GRUDGE_FORGIVE';
-
-const reducer = (state, action) => {
-  if (action.type === GRUDGE_ADD) {
-    return [action.payload, ...state];
-  }
-
-  if (action.type === GRUDGE_FORGIVE) {
-    const id = action.payload.id;
-    return state.map((grudge) => {
-      if (grudge.id !== id) {
-        return grudge;
-      }
-      return { ...grudge, forgiven: !grudge.forgiven };
-    });
-  }
-
-  return state;
+export const defaultState = {
+  past: [],
+  present: initialState,
+  future: []
 };
 
 export const GrudgeProvider = ({ children }) => {
-  const [grudges, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(reducer, defaultState);
+  const grudges = state.present;
+  const isPast = !!state.past.length;
+  const isFuture = !!state.future.length;
 
   const addGrudge = useCallback(
     ({ person, reason }) => {
@@ -55,10 +45,23 @@ export const GrudgeProvider = ({ children }) => {
     [dispatch]
   );
 
+  const undo = useCallback(() => {
+    dispatch({ type: UNDO });
+  }, [dispatch]);
+
+  const redo = useCallback(() => {
+    console.log('REDO');
+    dispatch({ type: REDO });
+  }, [dispatch]);
+
   const value = {
     grudges,
     addGrudge,
-    toggleForgiveness
+    toggleForgiveness,
+    undo,
+    redo,
+    isPast,
+    isFuture
   };
 
   return (
