@@ -1,7 +1,8 @@
-import React, { useReducer, createContext, useCallback } from 'react';
+import React, { createContext, useCallback } from 'react';
 import id from 'uuid/v4';
 import initialState from './initialState';
-import { reducer } from './grudgeReducer';
+import grudgeReducer from './grudgeReducer';
+import useUndoReducer from './useUndoReducer';
 import { GRUDGE_ADD, GRUDGE_FORGIVE, UNDO, REDO } from './actions';
 
 export const GrudgeContext = createContext();
@@ -13,7 +14,7 @@ export const defaultState = {
 };
 
 export const GrudgeProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(reducer, defaultState);
+  const [state, dispatch] = useUndoReducer(grudgeReducer, initialState);
   const grudges = state.present;
   const isPast = !!state.past.length;
   const isFuture = !!state.future.length;

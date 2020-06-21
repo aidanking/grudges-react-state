@@ -1,55 +1,26 @@
 import id from 'uuid/v4';
-import { defaultState } from './GrudgeContext';
-import { GRUDGE_ADD, GRUDGE_FORGIVE, UNDO, REDO } from './actions';
+import { GRUDGE_ADD, GRUDGE_FORGIVE } from './actions';
+import initialState from './initialState';
 
-export const reducer = (state = defaultState, action) => {
-  const newPresent = [
-    {
-      id: id(),
-      ...action.payload
-    },
-    ...state.present
-  ];
+export default (state = initialState, action) => {
   if (action.type === GRUDGE_ADD) {
-    return {
-      past: [state.present, ...state.past],
-      present: newPresent,
-      future: []
-    };
+    return [
+      {
+        id: id(),
+        ...action.payload
+      },
+      ...state
+    ];
   }
 
   if (action.type === GRUDGE_FORGIVE) {
     const id = action.payload.id;
-    const newPresent = state.present.map((grudge) => {
+    return state.map((grudge) => {
       if (grudge.id !== id) {
         return grudge;
       }
       return { ...grudge, forgiven: !grudge.forgiven };
     });
-    return {
-      past: [state.present, ...state.past],
-      present: newPresent,
-      future: [state.present, ...state.future]
-    };
-  }
-
-  if (action.type === UNDO) {
-    const [newPresent, ...NewPast] = state.past;
-
-    return {
-      past: NewPast,
-      present: newPresent,
-      future: [state.present, ...state.future]
-    };
-  }
-
-  if (action.type === REDO) {
-    const [newPresent, ...newFuture] = state.future;
-    return {
-      past: [state.present, ...state.past],
-      present: newPresent,
-      future: newFuture
-    };
   }
 
   return state;
